@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+  >
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Cesium快速入门</title>
+  <script src="https://cdn.staticfile.org/cesium/1.112.0/Cesium.js"></script>
+  <link href="https://cdn.staticfile.org/cesium/1.112.0/Widgets/widgets.min.css" rel="stylesheet">
+  <script src="./token.js"></script>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+<script type="module">
+  // 替换Cesium Ion 的Token
+  Cesium.Ion.defaultAccessToken = ionToken;
+
+  // 初始化 Cesium 的 Viewer
+  const viewer = new Cesium.Viewer('cesiumContainer', {
+    terrain: Cesium.Terrain.fromWorldTerrain(),
+  });
+
+  // 设置相机参数
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(114.31205, 30.5341, 900),
+    orientation: {
+      heading: Cesium.Math.toRadians(0.0),
+      pitch: Cesium.Math.toRadians(-15.0),
+    }
+  });
+
+  // 加载OSM建筑
+  const buildingTileset = await Cesium.createOsmBuildingsAsync();
+  viewer.scene.primitives.add(buildingTileset);
+</script>
+</body>
+</html>
