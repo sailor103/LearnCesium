@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+  >
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>3维城市模型</title>
+  <script src="https://cdn.staticfile.org/cesium/1.112.0/Cesium.js"></script>
+  <link href="https://cdn.staticfile.org/cesium/1.112.0/Widgets/widgets.min.css" rel="stylesheet">
+  <script src="./token.js"></script>
+  <style type="text/css">
+    #toggle-building { z-index: 1; position: fixed; top: 5px; left: 5px; }
+  </style>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+<button id="toggle-building">Toggle new building</button>
+<script type="module">
+  Cesium.Ion.defaultAccessToken = ionToken;
+  const viewer = new Cesium.Viewer('cesiumContainer', {
+    terrain: Cesium.Terrain.fromWorldTerrain(),
+  })
+
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(-104.9965, 39.74248, 4000)
+  })
+
+  const buildingTileset = await Cesium.createOsmBuildingsAsync();
+  viewer.scene.primitives.add(buildingTileset);
+
+  async function addBuildingGeoJSON() {
+    const geoJSONURL = await Cesium.IonResource.fromAssetId(2411655)
+    const geoJSON = await Cesium.GeoJsonDataSource.load(geoJSONURL, {
+      clampToGround: true
+    })
+    const dataSource = await viewer.dataSources.add(geoJSON);
+    for (const entity of dataSource.entities.values) {
+      entity.polygon.classificationType = Cesium.ClassificationType.TERRAIN;
+    }
+    viewer.flyTo(dataSource);
+  }
+
+  addBuildingGeoJSON();
+
+  buildingTileset.style = new Cesium.Cesium3DTileStyle({
+    // Create a style rule to control each building's "show" property.
+    show: {
+      conditions : [
+        // Any building that has this elementId will have `show = false`.
+        ['${elementId} === 332469316', false],
+        ['${elementId} === 332469317', false],
+        ['${elementId} === 235368665', false],
+        ['${elementId} === 530288180', false],
+        ['${elementId} === 530288179', false],
+        ['${elementId} === 532245203', false],
+        // If a building does not have one of these elementIds, set `show = true`.
+        [true, true]
+      ]
+    },
+    // Set the default color style for this particular 3D Tileset.
+    // For any building that has a `cesium#color` property, use that color, otherwise make it white.
+    color: "Boolean(${feature['cesium#color']}) ? color(${feature['cesium#color']}) : color('#ffffff')"
+  });
+
+  const newBuildingTileset = await Cesium.Cesium3DTileset.fromIonAssetId(2411662)
+  viewer.scene.primitives.add(newBuildingTileset);
+  viewer.flyTo(newBuildingTileset);
+
+  document.querySelector('#toggle-building').onclick = function() {
+    newBuildingTileset.show = !newBuildingTileset.show;
+  };
+
+</script>
+</body>
+</html>
